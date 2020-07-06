@@ -15,7 +15,7 @@ const Detail = () => {
 			}}>
 			<StatusBar backgroundColor={color} barStyle='dark-content' animated />
             <SharedElement id={`item.${color}`} >
-			<View style={{backgroundColor: color, width: '100%', height: 100, borderBottomEndRadius: 16, borderBottomStartRadius: 16}} />
+			<View style={{backgroundColor: color, width: '100%', height: 100, borderBottomEndRadius: 8, borderBottomStartRadius: 8}} />
             </SharedElement>
 		</View>
 	)

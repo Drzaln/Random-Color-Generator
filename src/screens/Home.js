@@ -1,5 +1,5 @@
 import React, { useState, useLayoutEffect, useContext } from 'react'
-import { StyleSheet, Text, View, StatusBar, Dimensions, ScrollView, Animated } from 'react-native'
+import { StyleSheet, Text, View, StatusBar, Dimensions, Animated, FlatList } from 'react-native'
 import Ripple from 'react-native-material-ripple'
 import randomColor from 'randomcolor'
 import hexToHsl from 'hex-to-hsl'
@@ -12,8 +12,6 @@ const Home = () => {
 	const [ selectedColor, setSelectedColor ] = useState()
 	const [ animatedValue ] = useState(new Animated.Value(0))
 	const navigation = useContext(NavigationContext)
-	let item
-	let justifyContent = 'center'
 
 	useLayoutEffect(
 		() => {
@@ -43,17 +41,6 @@ const Home = () => {
 		navigation.navigate(route, { param })
 	}
 
-	item = colors.map((color, index) => {
-		if (index === colors.length - 1) {
-			justifyContent = 'flex-start'
-		}
-		return (
-			<View key={index}>
-				<Item color={color} onPress={() => navigate('Detail', color)} />
-			</View>
-		)
-	})
-
 	return (
 		<View style={styles.container}>
 			<StatusBar backgroundColor='#EEEFF4' barStyle='dark-content' animated />
@@ -78,12 +65,15 @@ const Home = () => {
 				}}>
 				<ToastBar color={selectedColor} />
 			</Animated.View>
-			<ScrollView
+			<FlatList
 				showsVerticalScrollIndicator={false}
 				style={{ flex: 1, paddingHorizontal: 16, paddingBottom: 16 }}
-				contentContainerStyle={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: justifyContent }}>
-				{item}
-			</ScrollView>
+				columnWrapperStyle={{justifyContent: 'space-between'}}
+				numColumns={2}
+				data={colors}
+				renderItem={({ item }) => <Item color={item.color} onPress={() => navigate('Detail', item.color)} />}
+				keyExtractor={(item) => item.id}
+			/>
 			<BottomDock onPress={() => changeColor()} />
 		</View>
 	)
@@ -103,7 +93,7 @@ const Item = ({ color, onPress }) => {
 	const [ animation ] = useState(new Animated.Value(0))
 	const prevColor = usePrevious(color)?.current || color;
 	const { width } = Dimensions.get('window')
-	const size = width / 2.3
+	const size = width / 2.23
 
 	useLayoutEffect(
 		() => {
@@ -125,7 +115,6 @@ const Item = ({ color, onPress }) => {
 	return (
 		<Ripple
 			style={{
-				marginHorizontal: 4,
 				marginBottom: 8
 			}}
 			rippleContainerBorderRadius={8}
@@ -197,7 +186,7 @@ const getColor = () => {
 const getNewColor = (colorMuch = 6) => {
 	const color = new Array()
 	for (let index = 0; index < colorMuch; index++) {
-		color.push(getColor())
+		color.push({ id: index, color: getColor() })
 	}
 	return color
 }
