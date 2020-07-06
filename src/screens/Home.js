@@ -1,14 +1,17 @@
-import React, { useState, useLayoutEffect } from 'react'
+import React, { useState, useLayoutEffect, useContext } from 'react'
 import { StyleSheet, Text, View, StatusBar, Dimensions, ScrollView, Animated } from 'react-native'
 import Ripple from 'react-native-material-ripple'
 import randomColor from 'randomcolor'
 import hexToHsl from 'hex-to-hsl'
 import usePrevious from 'react-use-previous'
+import { NavigationContext } from 'react-navigation'
+import { SharedElement } from 'react-navigation-shared-element'
 
 const Home = () => {
 	const [ colors, setColors ] = useState(getNewColor())
 	const [ selectedColor, setSelectedColor ] = useState()
 	const [ animatedValue ] = useState(new Animated.Value(0))
+	const navigation = useContext(NavigationContext)
 	let item
 	let justifyContent = 'center'
 
@@ -33,11 +36,11 @@ const Home = () => {
 	)
 
 	const changeColor = () => {
-		setColors(getNewColor(6))
+		setColors(getNewColor(11))
 	}
 
-	const selectColor = (color) => {
-		setSelectedColor(color)
+	const navigate = (route, param) => {
+		navigation.navigate(route, { param })
 	}
 
 	item = colors.map((color, index) => {
@@ -46,14 +49,14 @@ const Home = () => {
 		}
 		return (
 			<View key={index}>
-				<Item color={color} onPress={() => selectColor(color)} />
+				<Item color={color} onPress={() => navigate('Detail', color)} />
 			</View>
 		)
 	})
 
 	return (
 		<View style={styles.container}>
-			<StatusBar backgroundColor='#EEEFF4' barStyle='dark-content' />
+			<StatusBar backgroundColor='#EEEFF4' barStyle='dark-content' animated />
 			<View style={{ marginBottom: 16, paddingHorizontal: 16 }}>
 				<Text style={{ fontWeight: 'bold', fontSize: 24, fontFamily: 'Roboto' }}>Color Palette Generator</Text>
 			</View>
@@ -135,14 +138,18 @@ const Item = ({ color, onPress }) => {
 					borderRadius: 8,
 					padding: 4
 				}}>
-				<Animated.View
-					style={{
-						backgroundColor: backgroundColor,
-						width: '100%',
-						flex: 4,
-						borderRadius: 8
-					}}
-				/>
+				<View style={{ flex: 4 }}>
+					<SharedElement id={`item.${color}`}>
+						<Animated.View
+							style={{
+								backgroundColor: backgroundColor,
+								width: '100%',
+								height: '100%',
+								borderRadius: 8
+							}}
+						/>
+					</SharedElement>
+				</View>
 				<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
 					<Text style={{ textAlign: 'center' }}>{color.toUpperCase()}</Text>
 				</View>
