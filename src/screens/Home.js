@@ -10,30 +10,31 @@ import { Moon, Sun } from '../assets/icon/index'
 
 const Home = () => {
 	const [ colors, setColors ] = useState(getNewColor())
-	const [ selectedColor, setSelectedColor ] = useState()
-	const [ animatedValue ] = useState(new Animated.Value(0))
+	// const [ selectedColor, setSelectedColor ] = useState()
+	// const [ animatedValue ] = useState(new Animated.Value(0))
+	const [ backgroundAnimate ] = useState(new Animated.Value(0))
 	const [ theme, setTheme ] = useState(true)
 	const navigation = useContext(NavigationContext)
 
-	useLayoutEffect(
-		() => {
-			if (selectedColor) {
-				animatedValue.setValue(0)
-				Animated.sequence([
-					Animated.spring(animatedValue, {
-						toValue: 1,
-						useNativeDriver: true
-					}),
-					Animated.delay(1000),
-					Animated.spring(animatedValue, {
-						toValue: 0,
-						useNativeDriver: true
-					})
-				]).start()
-			}
-		},
-		[ selectedColor ]
-	)
+	// useLayoutEffect(
+	// 	() => {
+	// 		if (selectedColor) {
+	// 			animatedValue.setValue(0)
+	// 			Animated.sequence([
+	// 				Animated.spring(animatedValue, {
+	// 					toValue: 1,
+	// 					useNativeDriver: true
+	// 				}),
+	// 				Animated.delay(1000),
+	// 				Animated.spring(animatedValue, {
+	// 					toValue: 0,
+	// 					useNativeDriver: true
+	// 				})
+	// 			]).start()
+	// 		}
+	// 	},
+	// 	[ selectedColor ]
+	// )
 
 	const changeColor = () => {
 		setColors(getNewColor(11))
@@ -43,16 +44,43 @@ const Home = () => {
 		navigation.navigate(route, { param })
 	}
 
+	const toogleTheme = () => {
+		if (theme) {
+			Animated.timing(backgroundAnimate, {
+				toValue: 0,
+				delay: 3,
+				useNativeDriver: false
+			}).start(() => setTheme(false))
+		} else {
+			Animated.timing(backgroundAnimate, {
+				toValue: 1,
+				delay: 3,
+				useNativeDriver: false
+			}).start(() => setTheme(true))
+		}
+	}
+
+	const backgroundColor = backgroundAnimate.interpolate({
+		inputRange: [0, 1],
+		outputRange: [getHSLString('#222831'), getHSLString('#EEEFF4')]
+	})
+
+	const fontColor = backgroundAnimate.interpolate({
+		inputRange: [0, 1],
+		outputRange: [getHSLString('#FFF'), getHSLString('#000')]
+	})
+
 	return (
-		<View style={{
-			backgroundColor: theme ? '#EEEFF4' : '#222831',
+		<Animated.View style={{
+			backgroundColor: backgroundColor,
 			flex: 1,
-			paddingTop: 16
+			paddingTop: 16 + StatusBar.currentHeight
 		}}>
 			<StatusBar
-				backgroundColor={theme ? '#EEEFF4' : '#222831'}
+				backgroundColor={'transparent'}
 				barStyle={theme ? 'dark-content' : 'light-content'}
 				animated
+				translucent
 			/>
 			<View
 				style={{
@@ -62,18 +90,18 @@ const Home = () => {
 					justifyContent: 'space-between',
 					alignItems: 'center'
 				}}>
-				<Text
+				<Animated.Text
 					style={{
 						fontWeight: 'bold',
 						fontSize: 24,
 						fontFamily: 'Roboto',
-						color: theme ? 'black' : 'white'
+						color: fontColor
 					}}>
 					Color Palette Generator
-				</Text>
-				<Ripple onPress={() => setTheme(!theme)}>{theme ? <Moon /> : <Sun />}</Ripple>
+				</Animated.Text>
+				<Ripple onPress={() => toogleTheme()}>{theme ? <Moon /> : <Sun />}</Ripple>
 			</View>
-			<Animated.View
+			{/* <Animated.View
 				style={{
 					position: 'absolute',
 					top: 65,
@@ -90,24 +118,24 @@ const Home = () => {
 					]
 				}}>
 				<ToastBar color={selectedColor} />
-			</Animated.View>
+			</Animated.View> */}
 			<FlatList
 				showsVerticalScrollIndicator={false}
 				style={{ flex: 1, paddingHorizontal: 16, paddingBottom: 16 }}
 				columnWrapperStyle={{ justifyContent: 'space-between' }}
 				numColumns={2}
 				data={colors}
-				renderItem={({ item }) => <Item color={item.color} theme={theme} onPress={() => navigate('Detail', item.color)} />}
+				renderItem={({ item }) => <Item color={item.color} backgroundAnimate={backgroundAnimate} theme={theme} onPress={() => navigate('Detail', item.color)} />}
 				keyExtractor={(item) => item.id}
 			/>
-			<BottomDock onPress={() => changeColor()} theme={theme} />
-		</View>
+			<BottomDock onPress={() => changeColor()} theme={theme} backgroundAnimate={backgroundAnimate} />
+		</Animated.View>
 	)
 }
 
 export default Home
 
-const Item = ({ color, onPress, theme }) => {
+const Item = ({ color, onPress, theme, backgroundAnimate }) => {
 	const [ animation ] = useState(new Animated.Value(0))
 	const prevColor = usePrevious(color)?.current || color;
 	const { width } = Dimensions.get('window')
@@ -130,6 +158,16 @@ const Item = ({ color, onPress, theme }) => {
 		outputRange: [ getHSLString(prevColor), getHSLString(color) ]
 	})
 
+	const overlayColor = backgroundAnimate.interpolate({
+		inputRange: [0, 1],
+		outputRange: [getHSLString('#393e46'), getHSLString('#FFF')]
+	})
+
+	const fontColor = backgroundAnimate.interpolate({
+		inputRange: [0, 1],
+		outputRange: [getHSLString('#FFF'), getHSLString('#000')]
+	})
+
 	return (
 		<Ripple
 			style={{
@@ -137,11 +175,11 @@ const Item = ({ color, onPress, theme }) => {
 			}}
 			rippleContainerBorderRadius={8}
 			onPress={onPress}>
-			<View
+			<Animated.View
 				style={{
 					width: size,
 					height: size,
-					backgroundColor: theme ? 'white' : '#393e46',
+					backgroundColor: overlayColor,
 					borderRadius: 8,
 					padding: 4
 				}}>
@@ -158,21 +196,26 @@ const Item = ({ color, onPress, theme }) => {
 					</SharedElement>
 				</View>
 				<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-					<Text style={{ textAlign: 'center', color: theme ? 'black' : 'white' }}>{color.toUpperCase()}</Text>
+					<Animated.Text style={{ textAlign: 'center', color: fontColor }}>{color.toUpperCase()}</Animated.Text>
 				</View>
-			</View>
+			</Animated.View>
 		</Ripple>
 	)
 }
 
-const BottomDock = ({ onPress, theme }) => {
+const BottomDock = ({ onPress, theme, backgroundAnimate }) => {
+	const overlayColor = backgroundAnimate.interpolate({
+		inputRange: [0, 1],
+		outputRange: [getHSLString('#393e46'), getHSLString('#FFF')]
+	})
+
 	return (
-		<View
+		<Animated.View
 			style={{
 				paddingHorizontal: 16,
 				paddingTop: 16,
 				paddingBottom: 32,
-				backgroundColor: theme ? 'white' : '#393e46',
+				backgroundColor: overlayColor,
 				borderTopEndRadius: 16,
 				borderTopStartRadius: 16
 			}}>
@@ -190,7 +233,7 @@ const BottomDock = ({ onPress, theme }) => {
 					</Text>
 				</View>
 			</Ripple>
-		</View>
+		</Animated.View>
 	)
 }
 
