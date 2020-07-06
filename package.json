@@ -25,6 +25,7 @@
     "react-native-safe-area-context": "3.0.7",
     "react-native-screens": "2.9.0",
     "react-native-shared-element": "^0.7.0",
+    "react-native-svg": "^12.1.0",
     "react-navigation": "4.4.0",
     "react-navigation-shared-element": "^2.3.1",
     "react-navigation-stack": "2.8.2",

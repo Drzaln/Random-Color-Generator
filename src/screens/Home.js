@@ -1,16 +1,18 @@
 import React, { useState, useLayoutEffect, useContext } from 'react'
-import { StyleSheet, Text, View, StatusBar, Dimensions, Animated, FlatList } from 'react-native'
+import { Text, View, StatusBar, Dimensions, Animated, FlatList } from 'react-native'
 import Ripple from 'react-native-material-ripple'
 import randomColor from 'randomcolor'
 import hexToHsl from 'hex-to-hsl'
 import usePrevious from 'react-use-previous'
 import { NavigationContext } from 'react-navigation'
 import { SharedElement } from 'react-navigation-shared-element'
+import { Moon, Sun } from '../assets/icon/index'
 
 const Home = () => {
 	const [ colors, setColors ] = useState(getNewColor())
 	const [ selectedColor, setSelectedColor ] = useState()
 	const [ animatedValue ] = useState(new Animated.Value(0))
+	const [ theme, setTheme ] = useState(true)
 	const navigation = useContext(NavigationContext)
 
 	useLayoutEffect(
@@ -42,10 +44,34 @@ const Home = () => {
 	}
 
 	return (
-		<View style={styles.container}>
-			<StatusBar backgroundColor='#EEEFF4' barStyle='dark-content' animated />
-			<View style={{ marginBottom: 16, paddingHorizontal: 16 }}>
-				<Text style={{ fontWeight: 'bold', fontSize: 24, fontFamily: 'Roboto' }}>Color Palette Generator</Text>
+		<View style={{
+			backgroundColor: theme ? '#EEEFF4' : '#222831',
+			flex: 1,
+			paddingTop: 16
+		}}>
+			<StatusBar
+				backgroundColor={theme ? '#EEEFF4' : '#222831'}
+				barStyle={theme ? 'dark-content' : 'light-content'}
+				animated
+			/>
+			<View
+				style={{
+					marginBottom: 16,
+					paddingHorizontal: 16,
+					flexDirection: 'row',
+					justifyContent: 'space-between',
+					alignItems: 'center'
+				}}>
+				<Text
+					style={{
+						fontWeight: 'bold',
+						fontSize: 24,
+						fontFamily: 'Roboto',
+						color: theme ? 'black' : 'white'
+					}}>
+					Color Palette Generator
+				</Text>
+				<Ripple onPress={() => setTheme(!theme)}>{theme ? <Moon /> : <Sun />}</Ripple>
 			</View>
 			<Animated.View
 				style={{
@@ -68,28 +94,20 @@ const Home = () => {
 			<FlatList
 				showsVerticalScrollIndicator={false}
 				style={{ flex: 1, paddingHorizontal: 16, paddingBottom: 16 }}
-				columnWrapperStyle={{justifyContent: 'space-between'}}
+				columnWrapperStyle={{ justifyContent: 'space-between' }}
 				numColumns={2}
 				data={colors}
-				renderItem={({ item }) => <Item color={item.color} onPress={() => navigate('Detail', item.color)} />}
+				renderItem={({ item }) => <Item color={item.color} theme={theme} onPress={() => navigate('Detail', item.color)} />}
 				keyExtractor={(item) => item.id}
 			/>
-			<BottomDock onPress={() => changeColor()} />
+			<BottomDock onPress={() => changeColor()} theme={theme} />
 		</View>
 	)
 }
 
 export default Home
 
-const styles = StyleSheet.create({
-	container: {
-		backgroundColor: '#EEEFF4',
-		flex: 1,
-		paddingTop: 16
-	}
-})
-
-const Item = ({ color, onPress }) => {
+const Item = ({ color, onPress, theme }) => {
 	const [ animation ] = useState(new Animated.Value(0))
 	const prevColor = usePrevious(color)?.current || color;
 	const { width } = Dimensions.get('window')
@@ -123,7 +141,7 @@ const Item = ({ color, onPress }) => {
 				style={{
 					width: size,
 					height: size,
-					backgroundColor: 'white',
+					backgroundColor: theme ? 'white' : '#393e46',
 					borderRadius: 8,
 					padding: 4
 				}}>
@@ -140,21 +158,21 @@ const Item = ({ color, onPress }) => {
 					</SharedElement>
 				</View>
 				<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-					<Text style={{ textAlign: 'center' }}>{color.toUpperCase()}</Text>
+					<Text style={{ textAlign: 'center', color: theme ? 'black' : 'white' }}>{color.toUpperCase()}</Text>
 				</View>
 			</View>
 		</Ripple>
 	)
 }
 
-const BottomDock = ({ onPress }) => {
+const BottomDock = ({ onPress, theme }) => {
 	return (
 		<View
 			style={{
 				paddingHorizontal: 16,
 				paddingTop: 16,
 				paddingBottom: 32,
-				backgroundColor: 'white',
+				backgroundColor: theme ? 'white' : '#393e46',
 				borderTopEndRadius: 16,
 				borderTopStartRadius: 16
 			}}>
@@ -195,6 +213,26 @@ const getHSLString = (color) => {
 	const [ h, s, l ] = hexToHsl(color)
 	return 'hsl(' + h + ',' + s + '%,' + l + '%)'
 }
+
+const hexAToRGBA = (h) => {
+	let r = 0, g = 0, b = 0, a = 1;
+  
+	if (h.length == 5) {
+	  r = "0x" + h[1] + h[1];
+	  g = "0x" + h[2] + h[2];
+	  b = "0x" + h[3] + h[3];
+	  a = "0x" + h[4] + h[4];
+  
+	} else if (h.length == 9) {
+	  r = "0x" + h[1] + h[2];
+	  g = "0x" + h[3] + h[4];
+	  b = "0x" + h[5] + h[6];
+	  a = "0x" + h[7] + h[8];
+	}
+	a = +(a / 255).toFixed(3);
+  
+	return "rgba(" + +r + "," + +g + "," + +b + "," + a + ")";
+  }
 
 const ToastBar = ({ color }) => {
 	return (
