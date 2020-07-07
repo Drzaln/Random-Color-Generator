@@ -10,31 +10,31 @@ import { Moon, Sun } from '../assets/icon/index'
 
 const Home = () => {
 	const [ colors, setColors ] = useState(getNewColor())
-	// const [ selectedColor, setSelectedColor ] = useState()
-	// const [ animatedValue ] = useState(new Animated.Value(0))
+	const [ selectedColor, setSelectedColor ] = useState()
+	const [ animatedValue ] = useState(new Animated.Value(0))
 	const [ backgroundAnimate ] = useState(new Animated.Value(0))
 	const [ theme, setTheme ] = useState(true)
 	const navigation = useContext(NavigationContext)
 
-	// useLayoutEffect(
-	// 	() => {
-	// 		if (selectedColor) {
-	// 			animatedValue.setValue(0)
-	// 			Animated.sequence([
-	// 				Animated.spring(animatedValue, {
-	// 					toValue: 1,
-	// 					useNativeDriver: true
-	// 				}),
-	// 				Animated.delay(1000),
-	// 				Animated.spring(animatedValue, {
-	// 					toValue: 0,
-	// 					useNativeDriver: true
-	// 				})
-	// 			]).start()
-	// 		}
-	// 	},
-	// 	[ selectedColor ]
-	// )
+	useLayoutEffect(
+		() => {
+			if (selectedColor) {
+				animatedValue.setValue(0)
+				Animated.sequence([
+					Animated.spring(animatedValue, {
+						toValue: 1,
+						useNativeDriver: true
+					}),
+					Animated.delay(1000),
+					Animated.spring(animatedValue, {
+						toValue: 0,
+						useNativeDriver: true
+					})
+				]).start()
+			}
+		},
+		[ selectedColor ]
+	)
 
 	const changeColor = () => {
 		setColors(getNewColor(11))
@@ -61,21 +61,22 @@ const Home = () => {
 	}
 
 	const backgroundColor = backgroundAnimate.interpolate({
-		inputRange: [0, 1],
-		outputRange: [getHSLString('#222831'), getHSLString('#EEEFF4')]
+		inputRange: [ 0, 1 ],
+		outputRange: [ getHSLString('#EEEFF4'), getHSLString('#222831') ]
 	})
 
 	const fontColor = backgroundAnimate.interpolate({
-		inputRange: [0, 1],
-		outputRange: [getHSLString('#FFF'), getHSLString('#000')]
+		inputRange: [ 0, 1 ],
+		outputRange: [ getHSLString('#000'), getHSLString('#FFF') ]
 	})
 
 	return (
-		<Animated.View style={{
-			backgroundColor: backgroundColor,
-			flex: 1,
-			paddingTop: 16 + StatusBar.currentHeight
-		}}>
+		<Animated.View
+			style={{
+				backgroundColor: backgroundColor,
+				flex: 1,
+				paddingTop: 16 + StatusBar.currentHeight
+			}}>
 			<StatusBar
 				backgroundColor={'transparent'}
 				barStyle={theme ? 'dark-content' : 'light-content'}
@@ -101,7 +102,7 @@ const Home = () => {
 				</Animated.Text>
 				<Ripple onPress={() => toogleTheme()}>{theme ? <Moon /> : <Sun />}</Ripple>
 			</View>
-			{/* <Animated.View
+			<Animated.View
 				style={{
 					position: 'absolute',
 					top: 65,
@@ -118,14 +119,22 @@ const Home = () => {
 					]
 				}}>
 				<ToastBar color={selectedColor} />
-			</Animated.View> */}
+			</Animated.View>
 			<FlatList
 				showsVerticalScrollIndicator={false}
 				style={{ flex: 1, paddingHorizontal: 16, paddingBottom: 16 }}
 				columnWrapperStyle={{ justifyContent: 'space-between' }}
 				numColumns={2}
 				data={colors}
-				renderItem={({ item }) => <Item color={item.color} backgroundAnimate={backgroundAnimate} theme={theme} onPress={() => navigate('Detail', item.color)} />}
+				renderItem={({ item }) => (
+					<Item
+						color={item.color}
+						backgroundAnimate={backgroundAnimate}
+						theme={theme}
+						onPress={() => navigate('Detail', item.color)}
+						onLongPress={() => setSelectedColor(item.color)}
+					/>
+				)}
 				keyExtractor={(item) => item.id}
 			/>
 			<BottomDock onPress={() => changeColor()} theme={theme} backgroundAnimate={backgroundAnimate} />
@@ -135,7 +144,7 @@ const Home = () => {
 
 export default Home
 
-const Item = ({ color, onPress, theme, backgroundAnimate }) => {
+const Item = ({ color, onPress, onLongPress, backgroundAnimate }) => {
 	const [ animation ] = useState(new Animated.Value(0))
 	const prevColor = usePrevious(color)?.current || color;
 	const { width } = Dimensions.get('window')
@@ -159,13 +168,13 @@ const Item = ({ color, onPress, theme, backgroundAnimate }) => {
 	})
 
 	const overlayColor = backgroundAnimate.interpolate({
-		inputRange: [0, 1],
-		outputRange: [getHSLString('#393e46'), getHSLString('#FFF')]
+		inputRange: [ 0, 1 ],
+		outputRange: [ getHSLString('#FFF'), getHSLString('#393e46') ]
 	})
 
 	const fontColor = backgroundAnimate.interpolate({
-		inputRange: [0, 1],
-		outputRange: [getHSLString('#FFF'), getHSLString('#000')]
+		inputRange: [ 0, 1 ],
+		outputRange: [ getHSLString('#000'), getHSLString('#FFF') ]
 	})
 
 	return (
@@ -174,7 +183,8 @@ const Item = ({ color, onPress, theme, backgroundAnimate }) => {
 				marginBottom: 8
 			}}
 			rippleContainerBorderRadius={8}
-			onPress={onPress}>
+			onPress={onPress}
+			onLongPress={onLongPress}>
 			<Animated.View
 				style={{
 					width: size,
@@ -196,7 +206,9 @@ const Item = ({ color, onPress, theme, backgroundAnimate }) => {
 					</SharedElement>
 				</View>
 				<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-					<Animated.Text style={{ textAlign: 'center', color: fontColor }}>{color.toUpperCase()}</Animated.Text>
+					<Animated.Text style={{ textAlign: 'center', color: fontColor }}>
+						{color.toUpperCase()}
+					</Animated.Text>
 				</View>
 			</Animated.View>
 		</Ripple>
@@ -205,8 +217,8 @@ const Item = ({ color, onPress, theme, backgroundAnimate }) => {
 
 const BottomDock = ({ onPress, theme, backgroundAnimate }) => {
 	const overlayColor = backgroundAnimate.interpolate({
-		inputRange: [0, 1],
-		outputRange: [getHSLString('#393e46'), getHSLString('#FFF')]
+		inputRange: [ 0, 1 ],
+		outputRange: [ getHSLString('#FFF'), getHSLString('#393e46') ]
 	})
 
 	return (
@@ -258,24 +270,26 @@ const getHSLString = (color) => {
 }
 
 const hexAToRGBA = (h) => {
-	let r = 0, g = 0, b = 0, a = 1;
-  
+	let r = 0,
+		g = 0,
+		b = 0,
+		a = 1
+
 	if (h.length == 5) {
-	  r = "0x" + h[1] + h[1];
-	  g = "0x" + h[2] + h[2];
-	  b = "0x" + h[3] + h[3];
-	  a = "0x" + h[4] + h[4];
-  
+		r = '0x' + h[1] + h[1]
+		g = '0x' + h[2] + h[2]
+		b = '0x' + h[3] + h[3]
+		a = '0x' + h[4] + h[4]
 	} else if (h.length == 9) {
-	  r = "0x" + h[1] + h[2];
-	  g = "0x" + h[3] + h[4];
-	  b = "0x" + h[5] + h[6];
-	  a = "0x" + h[7] + h[8];
+		r = '0x' + h[1] + h[2]
+		g = '0x' + h[3] + h[4]
+		b = '0x' + h[5] + h[6]
+		a = '0x' + h[7] + h[8]
 	}
-	a = +(a / 255).toFixed(3);
-  
-	return "rgba(" + +r + "," + +g + "," + +b + "," + a + ")";
-  }
+	a = +(a / 255).toFixed(3)
+
+	return 'rgba(' + +r + ',' + +g + ',' + +b + ',' + a + ')'
+}
 
 const ToastBar = ({ color }) => {
 	return (
