@@ -47,13 +47,13 @@ const Home = () => {
 	const toogleTheme = () => {
 		if (theme) {
 			Animated.timing(backgroundAnimate, {
-				toValue: 0,
+				toValue: 1,
 				delay: 3,
 				useNativeDriver: false
 			}).start(() => setTheme(false))
 		} else {
 			Animated.timing(backgroundAnimate, {
-				toValue: 1,
+				toValue: 0,
 				delay: 3,
 				useNativeDriver: false
 			}).start(() => setTheme(true))
