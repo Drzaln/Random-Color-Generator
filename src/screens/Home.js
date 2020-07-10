@@ -1,4 +1,4 @@
-import React, { useState, useLayoutEffect, useContext } from 'react'
+import React, { useState, useLayoutEffect, useContext, useEffect } from 'react'
 import { Text, View, StatusBar, Dimensions, Animated, FlatList } from 'react-native'
 import Ripple from 'react-native-material-ripple'
 import randomColor from 'randomcolor'
@@ -126,8 +126,10 @@ const Home = () => {
 				columnWrapperStyle={{ justifyContent: 'space-between' }}
 				numColumns={2}
 				data={colors}
-				renderItem={({ item }) => (
+				renderItem={({ item, index }) => (
 					<Item
+						index={index}
+						colors={colors}
 						color={item.color}
 						backgroundAnimate={backgroundAnimate}
 						theme={theme}
@@ -144,10 +146,11 @@ const Home = () => {
 
 export default Home
 
-const Item = ({ color, onPress, onLongPress, backgroundAnimate }) => {
+const Item = ({ color, onPress, onLongPress, backgroundAnimate, colors, index }) => {
 	const [ animation ] = useState(new Animated.Value(0))
+	const [ translate ] = useState(new Animated.Value(0))
 	const prevColor = usePrevious(color)?.current || color;
-	const { width } = Dimensions.get('window')
+	const { width, height } = Dimensions.get('window')
 	const size = width / 2.23
 
 	useLayoutEffect(
@@ -161,6 +164,16 @@ const Item = ({ color, onPress, onLongPress, backgroundAnimate }) => {
 		},
 		[ color ]
 	)
+
+	useLayoutEffect(() => {
+		translate.setValue(0)
+		Animated.timing(translate, {
+			toValue: 1,
+			duration: 500,
+			delay: index * 100,
+			useNativeDriver: true
+		}).start()
+	}, [])
 
 	const backgroundColor = animation.interpolate({
 		inputRange: [ 0, 1 ],
@@ -177,41 +190,48 @@ const Item = ({ color, onPress, onLongPress, backgroundAnimate }) => {
 		outputRange: [ getHSLString('#000'), getHSLString('#FFF') ]
 	})
 
+	const translateY = translate.interpolate({
+		inputRange: [ 0, 1 ],
+		outputRange: [ height, 0 ]
+	})
+
 	return (
-		<Ripple
-			style={{
-				marginBottom: 8
-			}}
-			rippleContainerBorderRadius={8}
-			onPress={onPress}
-			onLongPress={onLongPress}>
-			<Animated.View
+		<Animated.View style={{ transform: [ { translateY } ] }}>
+			<Ripple
 				style={{
-					width: size,
-					height: size,
-					backgroundColor: overlayColor,
-					borderRadius: 8,
-					padding: 4
-				}}>
-				<View style={{ flex: 4 }}>
-					<SharedElement id={`item.${color}`}>
-						<Animated.View
-							style={{
-								backgroundColor: backgroundColor,
-								width: '100%',
-								height: '100%',
-								borderRadius: 8
-							}}
-						/>
-					</SharedElement>
-				</View>
-				<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-					<Animated.Text style={{ textAlign: 'center', color: fontColor }}>
-						{color.toUpperCase()}
-					</Animated.Text>
-				</View>
-			</Animated.View>
-		</Ripple>
+					marginBottom: 8
+				}}
+				rippleContainerBorderRadius={8}
+				onPress={onPress}
+				onLongPress={onLongPress}>
+				<Animated.View
+					style={{
+						width: size,
+						height: size,
+						backgroundColor: overlayColor,
+						borderRadius: 8,
+						padding: 4
+					}}>
+					<View style={{ flex: 4 }}>
+						<SharedElement id={`item.${color}`}>
+							<Animated.View
+								style={{
+									backgroundColor: backgroundColor,
+									width: '100%',
+									height: '100%',
+									borderRadius: 8
+								}}
+							/>
+						</SharedElement>
+					</View>
+					<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+						<Animated.Text style={{ textAlign: 'center', color: fontColor }}>
+							{color.toUpperCase()}
+						</Animated.Text>
+					</View>
+				</Animated.View>
+			</Ripple>
+		</Animated.View>
 	)
 }
 
