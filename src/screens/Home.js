@@ -1,4 +1,4 @@
-import React, { useState, useLayoutEffect, useContext, useEffect } from 'react'
+import React, { useState, useLayoutEffect, useContext } from 'react'
 import { Text, View, StatusBar, Dimensions, Animated, FlatList } from 'react-native'
 import Ripple from 'react-native-material-ripple'
 import randomColor from 'randomcolor'
@@ -165,15 +165,18 @@ const Item = ({ color, onPress, onLongPress, backgroundAnimate, colors, index })
 		[ color ]
 	)
 
-	useLayoutEffect(() => {
-		translate.setValue(0)
-		Animated.timing(translate, {
-			toValue: 1,
-			duration: 500,
-			delay: index * 100,
-			useNativeDriver: true
-		}).start()
-	}, [])
+	useLayoutEffect(
+		() => {
+			translate.setValue(0)
+			Animated.timing(translate, {
+				toValue: 1,
+				duration: 500,
+				delay: index * 100,
+				useNativeDriver: true
+			}).start()
+		},
+		[ colors.length ]
+	)
 
 	const backgroundColor = animation.interpolate({
 		inputRange: [ 0, 1 ],
